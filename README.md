@@ -2,6 +2,8 @@
 
 A static web tool for comparing AI model responses on educational micro-tasks. Built for educators, developers, and policymakers to evaluate different AI models on real-world education scenarios.
 
+Inspired from [Artificial Analysis MicroEvals page](https://artificialanalysis.ai/microevals)
+
 ## Overview
 
 **Philosophy:** Static & Robust. Zero maintenance costs, high reliability, free hosting via GitHub Pages.
