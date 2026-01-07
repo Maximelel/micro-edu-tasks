@@ -3,181 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Micro Edu Tasks - AI Model Comparison Tool</title>
-
-    <!-- Tailwind CSS -->
+    <title>Micro Edu Tasks - AI Model Comparison</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Marked.js for Markdown Rendering -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Custom Styles */
-        .persona-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        /* Custom scrollbar for response areas */
+        .response-box::-webkit-scrollbar { width: 6px; }
+        .response-box::-webkit-scrollbar-track { background: #f1f1f1; }
+        .response-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .response-box::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Loading animation pulse */
+        @keyframes pulse-text {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
         }
-        .persona-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        .task-item {
-            transition: background-color 0.2s ease;
-        }
-        .task-item:hover {
-            background-color: #f3f4f6;
-        }
-        .task-item.active {
-            background-color: #dbeafe;
-            border-left: 4px solid #3b82f6;
-        }
-        .loading-spinner {
-            border: 3px solid #f3f4f6;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .response-card {
-            min-height: 200px;
-        }
-        .markdown-content {
-            line-height: 1.6;
-        }
-        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
-            font-weight: 600;
-            margin-top: 1em;
-            margin-bottom: 0.5em;
-        }
-        .markdown-content code {
-            background-color: #f3f4f6;
+        .loading-text { animation: pulse-text 1.5s infinite; }
+
+        /* Transition utilities */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Markdown rendering */
+        .response-content strong { font-weight: 600; color: #1e293b; }
+        .response-content em { font-style: italic; color: #64748b; }
+        .response-content code {
+            background-color: #f1f5f9;
             padding: 0.2em 0.4em;
             border-radius: 3px;
+            font-family: 'Courier New', monospace;
             font-size: 0.9em;
         }
-        .markdown-content pre {
-            background-color: #1f2937;
-            color: #f3f4f6;
+        .response-content pre {
+            background-color: #1e293b;
+            color: #e2e8f0;
             padding: 1em;
             border-radius: 0.5em;
             overflow-x: auto;
-            margin: 1em 0;
+            margin: 0.5em 0;
         }
-        .markdown-content pre code {
-            background-color: transparent;
-            padding: 0;
+        .response-content pre code {
+            background: none;
             color: inherit;
+            padding: 0;
         }
-        .markdown-content ul, .markdown-content ol {
+        .response-content ul {
+            list-style-type: disc;
             margin-left: 1.5em;
             margin-top: 0.5em;
+        }
+        .response-content ol {
+            list-style-type: decimal;
+            margin-left: 1.5em;
+            margin-top: 0.5em;
+        }
+        .response-content li { margin-bottom: 0.25em; }
+        .response-content h1, .response-content h2, .response-content h3 {
+            font-weight: 600;
+            margin-top: 0.75em;
             margin-bottom: 0.5em;
         }
-        .markdown-content li {
-            margin-bottom: 0.25em;
-        }
+        .response-content h1 { font-size: 1.25em; }
+        .response-content h2 { font-size: 1.1em; }
+        .response-content h3 { font-size: 1em; }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 text-slate-800 font-sans h-screen flex flex-col overflow-hidden">
 
-    <!-- Landing View -->
-    <div id="landing-view" class="min-h-screen">
-        <!-- Hero Section -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-            <div class="container mx-auto px-6 py-16">
-                <div class="text-center">
-                    <h1 class="text-5xl font-bold mb-4">Micro Edu Tasks</h1>
-                    <p class="text-xl mb-8 text-blue-100">Compare AI models on real educational micro-tasks</p>
-                    <button id="start-btn" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg">
-                        Start Comparing <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
-                </div>
+    <!-- LANDING VIEW -->
+    <div id="view-landing" class="flex-1 overflow-y-auto w-full fade-in">
+        <header class="bg-white border-b border-gray-200 pt-16 pb-12 px-6 text-center">
+            <div class="max-w-4xl mx-auto">
+                <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">M</div>
+                <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 mb-4">Micro Edu Tasks</h1>
+                <p class="text-xl text-slate-500 mb-8 max-w-2xl mx-auto">
+                    A curated library of "vibe checks" to help educators, developers, and policymakers compare how different AI models handle specific educational challenges.
+                </p>
+                <button onclick="switchView('app')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:-translate-y-1">
+                    Start Evaluating Models <i class="fas fa-arrow-right ml-2"></i>
+                </button>
             </div>
-        </div>
+        </header>
 
-        <!-- Persona Columns -->
-        <div class="container mx-auto px-6 py-16">
-            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Built For Education Stakeholders</h2>
-
+        <section class="max-w-7xl mx-auto px-6 py-12">
             <div class="grid md:grid-cols-3 gap-8">
+
                 <!-- Educator Card -->
-                <div class="persona-card bg-white rounded-lg shadow-lg p-8 cursor-pointer" data-persona="educator">
-                    <div class="text-center mb-6">
-                        <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-chalkboard-teacher text-4xl text-green-600"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-800">Educators</h3>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 bg-blue-100 text-blue-600 rounded-lg"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <h2 class="text-xl font-bold">For Educators</h2>
                     </div>
-                    <p class="text-gray-600 mb-6">
-                        Test how AI handles lesson planning, rubric creation, differentiation strategies, and classroom management scenarios.
-                    </p>
-                    <ul class="space-y-2 text-sm text-gray-700">
-                        <li><i class="fas fa-check text-green-500 mr-2"></i>Grading rubrics</li>
-                        <li><i class="fas fa-check text-green-500 mr-2"></i>Lesson plans</li>
-                        <li><i class="fas fa-check text-green-500 mr-2"></i>Differentiation strategies</li>
-                        <li><i class="fas fa-check text-green-500 mr-2"></i>Assessment design</li>
+                    <p class="text-gray-500 text-sm mb-6">Test pedagogical reasoning, tone adaptation, and content simplification.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <span class="text-sm font-medium">Create a rubric for Grade 5 History</span>
+                        </li>
+                        <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <span class="text-sm font-medium">Differentiate text for dyslexia</span>
+                        </li>
+                        <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <span class="text-sm font-medium">Generate misconception-based quiz questions</span>
+                        </li>
                     </ul>
-                    <button class="mt-6 w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-300 persona-start-btn" data-persona="educator">
-                        View Tasks <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
                 </div>
 
                 <!-- Developer Card -->
-                <div class="persona-card bg-white rounded-lg shadow-lg p-8 cursor-pointer" data-persona="developer">
-                    <div class="text-center mb-6">
-                        <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-code text-4xl text-blue-600"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-800">Developers</h3>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 bg-purple-100 text-purple-600 rounded-lg"><i class="fas fa-code"></i></div>
+                        <h2 class="text-xl font-bold">For Developers</h2>
                     </div>
-                    <p class="text-gray-600 mb-6">
-                        Evaluate AI coding capabilities for educational technology projects, from API design to database architecture.
-                    </p>
-                    <ul class="space-y-2 text-sm text-gray-700">
-                        <li><i class="fas fa-check text-blue-500 mr-2"></i>Code generation</li>
-                        <li><i class="fas fa-check text-blue-500 mr-2"></i>API documentation</li>
-                        <li><i class="fas fa-check text-blue-500 mr-2"></i>Database design</li>
-                        <li><i class="fas fa-check text-blue-500 mr-2"></i>Technical architecture</li>
+                    <p class="text-gray-500 text-sm mb-6">Test structured data extraction, code generation, and API reliability.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <span class="text-sm font-medium">Extract JSON from a syllabus PDF</span>
+                        </li>
+                        <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <span class="text-sm font-medium">Write a Python unit test for grading logic</span>
+                        </li>
+                        <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <span class="text-sm font-medium">Convert natural language to SQL queries</span>
+                        </li>
                     </ul>
-                    <button class="mt-6 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300 persona-start-btn" data-persona="developer">
-                        View Tasks <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
                 </div>
 
                 <!-- Policymaker Card -->
-                <div class="persona-card bg-white rounded-lg shadow-lg p-8 cursor-pointer" data-persona="policymaker">
-                    <div class="text-center mb-6">
-                        <div class="bg-purple-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-landmark text-4xl text-purple-600"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-800">Policymakers</h3>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 bg-orange-100 text-orange-600 rounded-lg"><i class="fas fa-gavel"></i></div>
+                        <h2 class="text-xl font-bold">For Policymakers</h2>
                     </div>
-                    <p class="text-gray-600 mb-6">
-                        Assess AI's ability to draft policy frameworks, ethical guidelines, and strategic recommendations for education systems.
-                    </p>
-                    <ul class="space-y-2 text-sm text-gray-700">
-                        <li><i class="fas fa-check text-purple-500 mr-2"></i>Policy frameworks</li>
-                        <li><i class="fas fa-check text-purple-500 mr-2"></i>Ethical guidelines</li>
-                        <li><i class="fas fa-check text-purple-500 mr-2"></i>Digital equity</li>
-                        <li><i class="fas fa-check text-purple-500 mr-2"></i>Strategic planning</li>
+                    <p class="text-gray-500 text-sm mb-6">Test safety guardrails, bias detection, and compliance drafting.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <span class="text-sm font-medium">Check PII handling in student data</span>
+                        </li>
+                        <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <span class="text-sm font-medium">Draft a parental consent form (COPPA)</span>
+                        </li>
+                        <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <span class="text-sm font-medium">Audit text for gender bias in career advice</span>
+                        </li>
                     </ul>
-                    <button class="mt-6 w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition duration-300 persona-start-btn" data-persona="policymaker">
-                        View Tasks <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Footer -->
-        <div class="bg-gray-800 text-white py-8">
-            <div class="container mx-auto px-6 text-center">
+        <footer class="bg-gray-800 text-white py-8 mt-12">
+            <div class="max-w-7xl mx-auto px-6 text-center">
                 <p class="text-sm text-gray-400">
                     <i class="fas fa-info-circle mr-2"></i>
                     All responses are pre-generated. No live AI inference occurs on this site.
@@ -186,256 +171,288 @@
                     Open source project | Hosted on GitHub Pages
                 </p>
             </div>
-        </div>
+        </footer>
     </div>
 
-    <!-- App View -->
-    <div id="app-view" class="hidden min-h-screen">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
-            <div class="container mx-auto px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <button id="back-btn" class="hover:bg-blue-700 p-2 rounded transition duration-200">
-                        <i class="fas fa-arrow-left text-xl"></i>
-                    </button>
-                    <h1 class="text-2xl font-bold">Micro Edu Tasks</h1>
-                </div>
-                <div id="persona-badge" class="bg-white/20 px-4 py-2 rounded-lg">
-                    <i class="fas fa-user mr-2"></i>
-                    <span id="current-persona-text" class="font-semibold">Educator</span>
-                </div>
+    <!-- APP VIEW -->
+    <div id="view-app" class="hidden h-full flex flex-col fade-in">
+
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('landing')">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">M</div>
+                <h1 class="text-xl font-bold tracking-tight">Micro Edu <span class="text-blue-600">Tasks</span></h1>
+                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded ml-2">BETA</span>
             </div>
-        </div>
+
+            <!-- Persona Toggle -->
+            <div class="flex bg-gray-100 p-1 rounded-lg">
+                <button onclick="setPersona('educator')" id="btn-educator" class="px-4 py-1.5 text-sm font-medium rounded-md transition-all bg-white shadow text-blue-700">
+                    <i class="fas fa-chalkboard-teacher mr-2"></i>Educator
+                </button>
+                <button onclick="setPersona('developer')" id="btn-developer" class="px-4 py-1.5 text-sm font-medium rounded-md transition-all text-gray-500 hover:text-gray-900">
+                    <i class="fas fa-code mr-2"></i>Developer
+                </button>
+                <button onclick="setPersona('policymaker')" id="btn-policymaker" class="px-4 py-1.5 text-sm font-medium rounded-md transition-all text-gray-500 hover:text-gray-900">
+                    <i class="fas fa-gavel mr-2"></i>Policymaker
+                </button>
+            </div>
+
+            <button onclick="switchView('landing')" class="text-sm text-gray-500 hover:text-blue-600 font-medium">
+                <i class="fas fa-times mr-1"></i> Exit
+            </button>
+        </nav>
 
         <!-- Main Content -->
-        <div class="flex">
+        <main class="flex-1 flex overflow-hidden">
+
             <!-- Sidebar -->
-            <div class="w-80 bg-white shadow-lg min-h-screen p-6">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">
-                    <i class="fas fa-tasks mr-2 text-blue-600"></i>
-                    Tasks
-                </h2>
-                <div id="task-list" class="space-y-2">
-                    <!-- Tasks will be dynamically loaded here -->
+            <aside class="w-80 bg-white border-r border-gray-200 flex flex-col">
+                <div class="p-4 border-b border-gray-100">
+                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Select a Micro-Task</h2>
+                    <p class="text-sm text-gray-500">Choose a task to compare model performance.</p>
                 </div>
-            </div>
+                <div id="task-list" class="flex-1 overflow-y-auto p-2 space-y-2">
+                    <!-- Tasks loaded dynamically -->
+                </div>
+            </aside>
 
-            <!-- Main Area -->
-            <div class="flex-1 p-8">
-                <div id="empty-state" class="text-center py-16">
-                    <i class="fas fa-hand-pointer text-6xl text-gray-300 mb-4"></i>
-                    <p class="text-xl text-gray-500">Select a task from the sidebar to begin</p>
+            <!-- Response Arena -->
+            <section class="flex-1 bg-slate-50 p-6 flex flex-col overflow-hidden">
+
+                <!-- Prompt Display -->
+                <div class="mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">CURRENT PROMPT</span>
+                    </div>
+                    <p id="prompt-display" class="text-lg text-gray-800 leading-relaxed font-medium">Select a task from the sidebar to begin the evaluation...</p>
                 </div>
 
-                <div id="task-content" class="hidden">
-                    <!-- Task Header -->
-                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                        <h2 id="task-title" class="text-3xl font-bold text-gray-800 mb-4"></h2>
-                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                            <p class="text-sm text-gray-600 font-semibold mb-2">
-                                <i class="fas fa-question-circle mr-2 text-blue-500"></i>
-                                Prompt
-                            </p>
-                            <p id="task-prompt" class="text-gray-700"></p>
+                <!-- Three Column Response Grid -->
+                <div class="flex-1 grid grid-cols-3 gap-6 overflow-hidden min-h-0">
+
+                    <!-- Model 1: GPT-4o -->
+                    <div class="flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full">
+                        <div class="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span class="font-bold text-sm" id="model-name-1">GPT-4o</span>
+                            </div>
+                            <span class="text-xs text-gray-400" id="time-1">--</span>
                         </div>
+                        <div id="response-1" class="flex-1 p-4 text-sm leading-6 text-gray-700 overflow-y-auto response-box font-mono bg-white"></div>
                     </div>
 
-                    <!-- Model Responses Grid -->
-                    <div class="grid lg:grid-cols-3 gap-6" id="responses-grid">
-                        <!-- Responses will be dynamically loaded here -->
+                    <!-- Model 2: Claude -->
+                    <div class="flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full">
+                        <div class="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                                <span class="font-bold text-sm" id="model-name-2">Claude 3.5 Sonnet</span>
+                            </div>
+                            <span class="text-xs text-gray-400" id="time-2">--</span>
+                        </div>
+                        <div id="response-2" class="flex-1 p-4 text-sm leading-6 text-gray-700 overflow-y-auto response-box font-mono bg-white"></div>
                     </div>
+
+                    <!-- Model 3: Gemini -->
+                    <div class="flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full">
+                        <div class="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                                <span class="font-bold text-sm" id="model-name-3">Gemini 1.5 Pro</span>
+                            </div>
+                            <span class="text-xs text-gray-400" id="time-3">--</span>
+                        </div>
+                        <div id="response-3" class="flex-1 p-4 text-sm leading-6 text-gray-700 overflow-y-auto response-box font-mono bg-white"></div>
+                    </div>
+
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 
     <script>
-        // State Management
-        const state = {
-            tasks: [],
-            currentPersona: 'educator',
-            currentView: 'landing',
-            currentTask: null,
-            modelDisplayNames: {
-                'gpt4o': 'GPT-4o',
-                'claude': 'Claude 3.5 Sonnet',
-                'gemini': 'Gemini 1.5 Pro',
-                'phi3': 'Phi-3 Mini'
-            },
-            modelColors: {
-                'gpt4o': 'green',
-                'claude': 'orange',
-                'gemini': 'blue',
-                'phi3': 'purple'
-            }
+        // --- STATE MANAGEMENT ---
+        let currentPersona = 'educator';
+        let tasksData = [];
+        let modelMapping = {
+            'gpt4o': { name: 'GPT-4o', slot: 1, color: 'green' },
+            'claude': { name: 'Claude 3.5 Sonnet', slot: 2, color: 'purple' },
+            'gemini': { name: 'Gemini 1.5 Pro', slot: 3, color: 'orange' },
+            'phi3': { name: 'Phi-3 Mini', slot: 3, color: 'blue' }
         };
 
-        // DOM Elements
-        const landingView = document.getElementById('landing-view');
-        const appView = document.getElementById('app-view');
-        const startBtn = document.getElementById('start-btn');
-        const backBtn = document.getElementById('back-btn');
-        const taskList = document.getElementById('task-list');
-        const emptyState = document.getElementById('empty-state');
-        const taskContent = document.getElementById('task-content');
-        const currentPersonaText = document.getElementById('current-persona-text');
-        const taskTitle = document.getElementById('task-title');
-        const taskPrompt = document.getElementById('task-prompt');
-        const responsesGrid = document.getElementById('responses-grid');
-
-        // Initialize
-        async function init() {
+        // --- LOAD DATA ---
+        async function loadData() {
             try {
                 const response = await fetch('./data.json');
-                if (!response.ok) {
-                    throw new Error('Failed to load data');
-                }
-                state.tasks = await response.json();
-                console.log(`Loaded ${state.tasks.length} tasks`);
+                if (!response.ok) throw new Error('Failed to load data');
+                tasksData = await response.json();
+                console.log(`Loaded ${tasksData.length} tasks`);
             } catch (error) {
                 console.error('Error loading data:', error);
-                alert('Failed to load task data. Please ensure data.json exists.');
+                document.getElementById('prompt-display').innerHTML =
+                    '<span class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load data.json. Please ensure the file exists.</span>';
             }
         }
 
-        // View Switching
-        function showAppView(persona = 'educator') {
-            state.currentView = 'app';
-            state.currentPersona = persona;
-            landingView.classList.add('hidden');
-            appView.classList.remove('hidden');
+        // --- VIEW SWITCHING ---
+        function switchView(viewName) {
+            const landing = document.getElementById('view-landing');
+            const app = document.getElementById('view-app');
 
-            // Update persona badge
-            currentPersonaText.textContent = persona.charAt(0).toUpperCase() + persona.slice(1);
-
-            // Load tasks for this persona
-            loadTaskList();
+            if (viewName === 'app') {
+                landing.classList.add('hidden');
+                app.classList.remove('hidden');
+                setPersona('educator');
+            } else {
+                app.classList.add('hidden');
+                landing.classList.remove('hidden');
+            }
         }
 
-        function showLandingView() {
-            state.currentView = 'landing';
-            state.currentTask = null;
-            appView.classList.add('hidden');
-            landingView.classList.remove('hidden');
+        // --- PERSONA SWITCHING ---
+        function setPersona(persona) {
+            currentPersona = persona;
+
+            // Update buttons
+            ['educator', 'developer', 'policymaker'].forEach(p => {
+                const btn = document.getElementById(`btn-${p}`);
+                if (p === persona) {
+                    btn.classList.remove('text-gray-500', 'hover:text-gray-900');
+                    btn.classList.add('bg-white', 'shadow', 'text-blue-700');
+                } else {
+                    btn.classList.add('text-gray-500', 'hover:text-gray-900');
+                    btn.classList.remove('bg-white', 'shadow', 'text-blue-700');
+                }
+            });
+
+            renderTaskList();
+
+            // Clear arena
+            document.getElementById('prompt-display').innerText = "Select a task from the sidebar to begin...";
+            [1, 2, 3].forEach(i => {
+                document.getElementById(`response-${i}`).innerHTML = "";
+                document.getElementById(`time-${i}`).innerText = "--";
+            });
         }
 
-        // Task List
-        function loadTaskList() {
-            const filteredTasks = state.tasks.filter(task => task.persona === state.currentPersona);
+        // --- RENDER TASK LIST ---
+        function renderTaskList() {
+            const listContainer = document.getElementById('task-list');
+            listContainer.innerHTML = '';
 
-            taskList.innerHTML = '';
+            const tasks = tasksData.filter(t => t.persona === currentPersona);
 
-            if (filteredTasks.length === 0) {
-                taskList.innerHTML = '<p class="text-gray-500 text-sm">No tasks available</p>';
+            if (tasks.length === 0) {
+                listContainer.innerHTML = '<p class="text-gray-500 text-sm p-4">No tasks available for this persona.</p>';
                 return;
             }
 
-            filteredTasks.forEach(task => {
-                const taskItem = document.createElement('div');
-                taskItem.className = 'task-item p-3 rounded cursor-pointer border border-gray-200';
-                taskItem.innerHTML = `
-                    <div class="font-semibold text-gray-800 text-sm mb-1">${task.title}</div>
-                    <div class="text-xs text-gray-500">${task.id}</div>
+            tasks.forEach(task => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors border border-transparent hover:border-blue-100 group";
+                btn.innerHTML = `
+                    <div class="font-medium text-sm text-gray-700 group-hover:text-blue-700">${task.title}</div>
+                    <div class="text-xs text-gray-400 mt-1 truncate">${task.prompt}</div>
                 `;
-
-                taskItem.addEventListener('click', () => loadTask(task));
-                taskList.appendChild(taskItem);
+                btn.onclick = () => runSimulation(task);
+                listContainer.appendChild(btn);
             });
         }
 
-        // Load Task with Simulated Latency
-        function loadTask(task) {
-            state.currentTask = task;
+        // --- RUN SIMULATION ---
+        function runSimulation(task) {
+            // Update prompt display
+            document.getElementById('prompt-display').innerText = task.prompt;
 
-            // Highlight selected task
-            document.querySelectorAll('.task-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            event.target.closest('.task-item').classList.add('active');
+            // Get available models
+            const responses = task.responses || {};
+            const availableModels = Object.keys(responses);
 
-            // Show loading state
-            emptyState.classList.add('hidden');
-            taskContent.classList.remove('hidden');
-
-            // Update task header
-            taskTitle.textContent = task.title;
-            taskPrompt.textContent = task.prompt;
-
-            // Clear previous responses
-            responsesGrid.innerHTML = '';
-
-            // Get available models for this task
-            const models = Object.keys(task.responses || {});
-
-            if (models.length === 0) {
-                responsesGrid.innerHTML = '<p class="col-span-3 text-center text-gray-500">No responses available for this task.</p>';
+            if (availableModels.length === 0) {
+                [1, 2, 3].forEach(i => {
+                    document.getElementById(`response-${i}`).innerHTML = '<p class="text-gray-400 text-center mt-8">No response available</p>';
+                });
                 return;
             }
 
-            // Create response cards with simulated loading
-            models.forEach(modelKey => {
-                const card = createResponseCard(modelKey);
-                responsesGrid.appendChild(card);
+            // Map models to slots
+            let slotAssignments = {};
+            availableModels.forEach(modelKey => {
+                const config = modelMapping[modelKey];
+                if (config) {
+                    slotAssignments[config.slot] = modelKey;
+                }
+            });
 
-                // Simulate loading with random delay
-                const delay = Math.random() * 500 + 300; // 300-800ms
+            // If we have fewer than 3 models, fill remaining slots
+            if (Object.keys(slotAssignments).length < 3) {
+                for (let slot = 1; slot <= 3; slot++) {
+                    if (!slotAssignments[slot]) {
+                        slotAssignments[slot] = availableModels[Object.keys(slotAssignments).length % availableModels.length];
+                    }
+                }
+            }
+
+            // Simulate loading for each slot
+            [1, 2, 3].forEach((slot, index) => {
+                const modelKey = slotAssignments[slot];
+                const responseBox = document.getElementById(`response-${slot}`);
+                const timeBox = document.getElementById(`time-${slot}`);
+                const nameBox = document.getElementById(`model-name-${slot}`);
+
+                // Update model name
+                if (modelKey && modelMapping[modelKey]) {
+                    nameBox.innerText = modelMapping[modelKey].name;
+                }
+
+                // Show loading state
+                responseBox.innerHTML = `<div class="flex items-center justify-center h-full text-gray-400 text-xs loading-text"><i class="fas fa-circle-notch fa-spin mr-2"></i>Generating...</div>`;
+                timeBox.innerText = '--';
+
+                // Staggered response times (600ms, 1000ms, 1400ms)
+                const delay = 600 + (index * 400);
+                const responseTime = (delay / 1000).toFixed(2);
+
                 setTimeout(() => {
-                    displayResponse(card, task.responses[modelKey]);
+                    if (modelKey && responses[modelKey]) {
+                        responseBox.innerHTML = `<div class="response-content">${formatResponse(responses[modelKey])}</div>`;
+                        timeBox.innerText = `${responseTime}s`;
+                    } else {
+                        responseBox.innerHTML = '<p class="text-gray-400 text-center mt-8">No response available</p>';
+                        timeBox.innerText = '--';
+                    }
                 }, delay);
             });
         }
 
-        // Create Response Card
-        function createResponseCard(modelKey) {
-            const modelName = state.modelDisplayNames[modelKey] || modelKey;
-            const color = state.modelColors[modelKey] || 'gray';
+        // --- FORMAT RESPONSE (Simple Markdown) ---
+        function formatResponse(text) {
+            // Simple markdown-like formatting
+            let formatted = text
+                // Headers
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Italic
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                // Code blocks
+                .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>')
+                // Inline code
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                // Line breaks
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
 
-            const card = document.createElement('div');
-            card.className = 'response-card bg-white rounded-lg shadow-md p-6';
-            card.innerHTML = `
-                <div class="mb-4 flex items-center justify-between">
-                    <h3 class="text-lg font-bold text-gray-800">
-                        <i class="fas fa-robot mr-2 text-${color}-500"></i>
-                        ${modelName}
-                    </h3>
-                    <span class="bg-${color}-100 text-${color}-700 text-xs px-2 py-1 rounded">${modelKey}</span>
-                </div>
-                <div class="response-content">
-                    <div class="flex items-center justify-center py-8">
-                        <div class="loading-spinner"></div>
-                    </div>
-                    <p class="text-center text-gray-500 text-sm mt-2">Generating...</p>
-                </div>
-            `;
-
-            return card;
+            return formatted;
         }
 
-        // Display Response
-        function displayResponse(card, responseText) {
-            const contentDiv = card.querySelector('.response-content');
-
-            // Render markdown
-            const htmlContent = marked.parse(responseText);
-
-            contentDiv.innerHTML = `<div class="markdown-content text-gray-700 text-sm">${htmlContent}</div>`;
-        }
-
-        // Event Listeners
-        startBtn.addEventListener('click', () => showAppView('educator'));
-        backBtn.addEventListener('click', showLandingView);
-
-        // Persona cards click handlers
-        document.querySelectorAll('.persona-start-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const persona = btn.dataset.persona;
-                showAppView(persona);
-            });
-        });
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', init);
+        // --- INITIALIZE ---
+        document.addEventListener('DOMContentLoaded', loadData);
     </script>
 </body>
 </html>
