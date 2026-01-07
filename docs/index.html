@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micro Edu Tasks - AI Model Comparison Tool</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Marked.js for Markdown Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        /* Custom Styles */
+        .persona-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .persona-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .task-item {
+            transition: background-color 0.2s ease;
+        }
+        .task-item:hover {
+            background-color: #f3f4f6;
+        }
+        .task-item.active {
+            background-color: #dbeafe;
+            border-left: 4px solid #3b82f6;
+        }
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .response-card {
+            min-height: 200px;
+        }
+        .markdown-content {
+            line-height: 1.6;
+        }
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            font-weight: 600;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+        .markdown-content code {
+            background-color: #f3f4f6;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .markdown-content pre {
+            background-color: #1f2937;
+            color: #f3f4f6;
+            padding: 1em;
+            border-radius: 0.5em;
+            overflow-x: auto;
+            margin: 1em 0;
+        }
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.5em;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+        .markdown-content li {
+            margin-bottom: 0.25em;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Landing View -->
+    <div id="landing-view" class="min-h-screen">
+        <!-- Hero Section -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+            <div class="container mx-auto px-6 py-16">
+                <div class="text-center">
+                    <h1 class="text-5xl font-bold mb-4">Micro Edu Tasks</h1>
+                    <p class="text-xl mb-8 text-blue-100">Compare AI models on real educational micro-tasks</p>
+                    <button id="start-btn" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg">
+                        Start Comparing <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Persona Columns -->
+        <div class="container mx-auto px-6 py-16">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Built For Education Stakeholders</h2>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Educator Card -->
+                <div class="persona-card bg-white rounded-lg shadow-lg p-8 cursor-pointer" data-persona="educator">
+                    <div class="text-center mb-6">
+                        <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chalkboard-teacher text-4xl text-green-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800">Educators</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">
+                        Test how AI handles lesson planning, rubric creation, differentiation strategies, and classroom management scenarios.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Grading rubrics</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Lesson plans</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Differentiation strategies</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Assessment design</li>
+                    </ul>
+                    <button class="mt-6 w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-300 persona-start-btn" data-persona="educator">
+                        View Tasks <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+
+                <!-- Developer Card -->
+                <div class="persona-card bg-white rounded-lg shadow-lg p-8 cursor-pointer" data-persona="developer">
+                    <div class="text-center mb-6">
+                        <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-code text-4xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800">Developers</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">
+                        Evaluate AI coding capabilities for educational technology projects, from API design to database architecture.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                        <li><i class="fas fa-check text-blue-500 mr-2"></i>Code generation</li>
+                        <li><i class="fas fa-check text-blue-500 mr-2"></i>API documentation</li>
+                        <li><i class="fas fa-check text-blue-500 mr-2"></i>Database design</li>
+                        <li><i class="fas fa-check text-blue-500 mr-2"></i>Technical architecture</li>
+                    </ul>
+                    <button class="mt-6 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300 persona-start-btn" data-persona="developer">
+                        View Tasks <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+
+                <!-- Policymaker Card -->
+                <div class="persona-card bg-white rounded-lg shadow-lg p-8 cursor-pointer" data-persona="policymaker">
+                    <div class="text-center mb-6">
+                        <div class="bg-purple-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-landmark text-4xl text-purple-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800">Policymakers</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">
+                        Assess AI's ability to draft policy frameworks, ethical guidelines, and strategic recommendations for education systems.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                        <li><i class="fas fa-check text-purple-500 mr-2"></i>Policy frameworks</li>
+                        <li><i class="fas fa-check text-purple-500 mr-2"></i>Ethical guidelines</li>
+                        <li><i class="fas fa-check text-purple-500 mr-2"></i>Digital equity</li>
+                        <li><i class="fas fa-check text-purple-500 mr-2"></i>Strategic planning</li>
+                    </ul>
+                    <button class="mt-6 w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition duration-300 persona-start-btn" data-persona="policymaker">
+                        View Tasks <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-800 text-white py-8">
+            <div class="container mx-auto px-6 text-center">
+                <p class="text-sm text-gray-400">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    All responses are pre-generated. No live AI inference occurs on this site.
+                </p>
+                <p class="text-xs text-gray-500 mt-2">
+                    Open source project | Hosted on GitHub Pages
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- App View -->
+    <div id="app-view" class="hidden min-h-screen">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+            <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button id="back-btn" class="hover:bg-blue-700 p-2 rounded transition duration-200">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <h1 class="text-2xl font-bold">Micro Edu Tasks</h1>
+                </div>
+                <div id="persona-badge" class="bg-white/20 px-4 py-2 rounded-lg">
+                    <i class="fas fa-user mr-2"></i>
+                    <span id="current-persona-text" class="font-semibold">Educator</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex">
+            <!-- Sidebar -->
+            <div class="w-80 bg-white shadow-lg min-h-screen p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-tasks mr-2 text-blue-600"></i>
+                    Tasks
+                </h2>
+                <div id="task-list" class="space-y-2">
+                    <!-- Tasks will be dynamically loaded here -->
+                </div>
+            </div>
+
+            <!-- Main Area -->
+            <div class="flex-1 p-8">
+                <div id="empty-state" class="text-center py-16">
+                    <i class="fas fa-hand-pointer text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-xl text-gray-500">Select a task from the sidebar to begin</p>
+                </div>
+
+                <div id="task-content" class="hidden">
+                    <!-- Task Header -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <h2 id="task-title" class="text-3xl font-bold text-gray-800 mb-4"></h2>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                            <p class="text-sm text-gray-600 font-semibold mb-2">
+                                <i class="fas fa-question-circle mr-2 text-blue-500"></i>
+                                Prompt
+                            </p>
+                            <p id="task-prompt" class="text-gray-700"></p>
+                        </div>
+                    </div>
+
+                    <!-- Model Responses Grid -->
+                    <div class="grid lg:grid-cols-3 gap-6" id="responses-grid">
+                        <!-- Responses will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        const state = {
+            tasks: [],
+            currentPersona: 'educator',
+            currentView: 'landing',
+            currentTask: null,
+            modelDisplayNames: {
+                'gpt4o': 'GPT-4o',
+                'claude': 'Claude 3.5 Sonnet',
+                'gemini': 'Gemini 1.5 Pro',
+                'phi3': 'Phi-3 Mini'
+            },
+            modelColors: {
+                'gpt4o': 'green',
+                'claude': 'orange',
+                'gemini': 'blue',
+                'phi3': 'purple'
+            }
+        };
+
+        // DOM Elements
+        const landingView = document.getElementById('landing-view');
+        const appView = document.getElementById('app-view');
+        const startBtn = document.getElementById('start-btn');
+        const backBtn = document.getElementById('back-btn');
+        const taskList = document.getElementById('task-list');
+        const emptyState = document.getElementById('empty-state');
+        const taskContent = document.getElementById('task-content');
+        const currentPersonaText = document.getElementById('current-persona-text');
+        const taskTitle = document.getElementById('task-title');
+        const taskPrompt = document.getElementById('task-prompt');
+        const responsesGrid = document.getElementById('responses-grid');
+
+        // Initialize
+        async function init() {
+            try {
+                const response = await fetch('./data.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load data');
+                }
+                state.tasks = await response.json();
+                console.log(`Loaded ${state.tasks.length} tasks`);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Failed to load task data. Please ensure data.json exists.');
+            }
+        }
+
+        // View Switching
+        function showAppView(persona = 'educator') {
+            state.currentView = 'app';
+            state.currentPersona = persona;
+            landingView.classList.add('hidden');
+            appView.classList.remove('hidden');
+
+            // Update persona badge
+            currentPersonaText.textContent = persona.charAt(0).toUpperCase() + persona.slice(1);
+
+            // Load tasks for this persona
+            loadTaskList();
+        }
+
+        function showLandingView() {
+            state.currentView = 'landing';
+            state.currentTask = null;
+            appView.classList.add('hidden');
+            landingView.classList.remove('hidden');
+        }
+
+        // Task List
+        function loadTaskList() {
+            const filteredTasks = state.tasks.filter(task => task.persona === state.currentPersona);
+
+            taskList.innerHTML = '';
+
+            if (filteredTasks.length === 0) {
+                taskList.innerHTML = '<p class="text-gray-500 text-sm">No tasks available</p>';
+                return;
+            }
+
+            filteredTasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item p-3 rounded cursor-pointer border border-gray-200';
+                taskItem.innerHTML = `
+                    <div class="font-semibold text-gray-800 text-sm mb-1">${task.title}</div>
+                    <div class="text-xs text-gray-500">${task.id}</div>
+                `;
+
+                taskItem.addEventListener('click', () => loadTask(task));
+                taskList.appendChild(taskItem);
+            });
+        }
+
+        // Load Task with Simulated Latency
+        function loadTask(task) {
+            state.currentTask = task;
+
+            // Highlight selected task
+            document.querySelectorAll('.task-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.task-item').classList.add('active');
+
+            // Show loading state
+            emptyState.classList.add('hidden');
+            taskContent.classList.remove('hidden');
+
+            // Update task header
+            taskTitle.textContent = task.title;
+            taskPrompt.textContent = task.prompt;
+
+            // Clear previous responses
+            responsesGrid.innerHTML = '';
+
+            // Get available models for this task
+            const models = Object.keys(task.responses || {});
+
+            if (models.length === 0) {
+                responsesGrid.innerHTML = '<p class="col-span-3 text-center text-gray-500">No responses available for this task.</p>';
+                return;
+            }
+
+            // Create response cards with simulated loading
+            models.forEach(modelKey => {
+                const card = createResponseCard(modelKey);
+                responsesGrid.appendChild(card);
+
+                // Simulate loading with random delay
+                const delay = Math.random() * 500 + 300; // 300-800ms
+                setTimeout(() => {
+                    displayResponse(card, task.responses[modelKey]);
+                }, delay);
+            });
+        }
+
+        // Create Response Card
+        function createResponseCard(modelKey) {
+            const modelName = state.modelDisplayNames[modelKey] || modelKey;
+            const color = state.modelColors[modelKey] || 'gray';
+
+            const card = document.createElement('div');
+            card.className = 'response-card bg-white rounded-lg shadow-md p-6';
+            card.innerHTML = `
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-800">
+                        <i class="fas fa-robot mr-2 text-${color}-500"></i>
+                        ${modelName}
+                    </h3>
+                    <span class="bg-${color}-100 text-${color}-700 text-xs px-2 py-1 rounded">${modelKey}</span>
+                </div>
+                <div class="response-content">
+                    <div class="flex items-center justify-center py-8">
+                        <div class="loading-spinner"></div>
+                    </div>
+                    <p class="text-center text-gray-500 text-sm mt-2">Generating...</p>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Display Response
+        function displayResponse(card, responseText) {
+            const contentDiv = card.querySelector('.response-content');
+
+            // Render markdown
+            const htmlContent = marked.parse(responseText);
+
+            contentDiv.innerHTML = `<div class="markdown-content text-gray-700 text-sm">${htmlContent}</div>`;
+        }
+
+        // Event Listeners
+        startBtn.addEventListener('click', () => showAppView('educator'));
+        backBtn.addEventListener('click', showLandingView);
+
+        // Persona cards click handlers
+        document.querySelectorAll('.persona-start-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const persona = btn.dataset.persona;
+                showAppView(persona);
+            });
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
